@@ -119,4 +119,19 @@ public class KnowledgeInfoVo implements Serializable {
     private String remark;
 
 
+  /**
+   * 权限类型，10本人可见，20角色可见
+   */
+  @ExcelProperty(value = "权限类型，10本人可见，20角色可见")
+  private String authType;
+
+  /**
+   * 角色字符串
+   */
+  @ExcelProperty(value = "角色字符串")
+  private String authRoles;
+
+  private Long createBy;
+
+
 }

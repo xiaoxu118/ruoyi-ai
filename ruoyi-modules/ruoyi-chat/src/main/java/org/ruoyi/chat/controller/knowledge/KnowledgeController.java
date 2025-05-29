@@ -61,6 +61,18 @@ public class KnowledgeController extends BaseController {
   }
 
   /**
+   * 根据用户角色和知识库属性 获取知识库列表
+   */
+  @GetMapping("/list-auth")
+  public TableDataInfo<KnowledgeInfoVo> listAuth(KnowledgeInfoBo bo, PageQuery pageQuery)
+      throws Exception {
+    if (!StpUtil.isLogin()) {
+      throw new SecurityException("请先去登录!");
+    }
+    return knowledgeInfoService.queryAuthList(bo, pageQuery);
+  }
+
+  /**
    * 新增知识库
    */
   @Log(title = "知识库", businessType = BusinessType.INSERT)

@@ -1,6 +1,8 @@
 package org.ruoyi.chat.service.chat.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.ruoyi.common.core.utils.StringUtils;
 import org.ruoyi.common.core.utils.file.FileUtils;
 import org.ruoyi.common.core.utils.file.MimeTypeUtils;
 import org.ruoyi.common.satoken.utils.LoginHelper;
+import org.ruoyi.domain.KnowledgeInfo;
 import org.ruoyi.domain.bo.ChatSessionBo;
 import org.ruoyi.domain.bo.QueryVectorBo;
 import org.ruoyi.domain.vo.ChatModelVo;
@@ -123,7 +126,7 @@ public class SseServiceImpl implements ISseService {
     /**
      *  构建消息列表
      */
-    private void buildChatMessageList(ChatRequest chatRequest){
+    private void buildChatMessageList(ChatRequest chatRequest) throws Exception {
         String sysPrompt;
         chatModelVo = chatModelService.selectModelByName(chatRequest.getModel());
         // 获取对话消息列表
@@ -134,7 +137,14 @@ public class SseServiceImpl implements ISseService {
             String content = messages.get(messages.size() - 1).getContent().toString();
             // 通过kid查询知识库信息
             KnowledgeInfoVo knowledgeInfoVo = knowledgeInfoService.queryById(Long.valueOf(chatRequest.getKid()));
-            // 查询向量模型配置信息
+            KnowledgeInfo knowledgeInfo =  new KnowledgeInfo();
+            BeanUtil.copyProperties(knowledgeInfoVo,knowledgeInfo);
+            //做权限校验
+            KnowledgeInfo knowledgeInfo1 = knowledgeInfoService.checkAuth(knowledgeInfo);
+            if (ObjectUtil.isEmpty(knowledgeInfo1)) {
+              throw new RuntimeException("无权限使用此知识库: "+knowledgeInfoVo.getKname());
+            }
+          // 查询向量模型配置信息
             ChatModelVo chatModel = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModelName());
 
             QueryVectorBo queryVectorBo = new QueryVectorBo();

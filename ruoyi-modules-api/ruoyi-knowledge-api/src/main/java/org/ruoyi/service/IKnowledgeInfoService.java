@@ -3,6 +3,7 @@ package org.ruoyi.service;
 
 import org.ruoyi.core.page.PageQuery;
 import org.ruoyi.core.page.TableDataInfo;
+import org.ruoyi.domain.KnowledgeInfo;
 import org.ruoyi.domain.bo.KnowledgeInfoBo;
 import org.ruoyi.domain.bo.KnowledgeInfoUploadBo;
 import org.ruoyi.domain.vo.KnowledgeInfoVo;
@@ -27,6 +28,9 @@ public interface IKnowledgeInfoService {
      * 查询知识库列表
      */
     TableDataInfo<KnowledgeInfoVo> queryPageList(KnowledgeInfoBo bo, PageQuery pageQuery);
+    TableDataInfo<KnowledgeInfoVo> queryAuthList(KnowledgeInfoBo bo, PageQuery pageQuery)
+        throws Exception;
+    KnowledgeInfo checkAuth(KnowledgeInfo knowledgeInfo) throws Exception;
 
     /**
      * 查询知识库列表

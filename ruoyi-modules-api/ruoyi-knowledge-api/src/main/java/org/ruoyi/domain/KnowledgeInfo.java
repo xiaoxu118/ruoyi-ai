@@ -98,5 +98,15 @@ public class KnowledgeInfo extends BaseEntity {
      */
     private String remark;
 
+    /**
+     * 权限类型，10本人可见，20角色可见
+     */
+    private String authType;
+
+    /**
+     * 角色字符串
+     */
+    private String authRoles;
+
 
 }

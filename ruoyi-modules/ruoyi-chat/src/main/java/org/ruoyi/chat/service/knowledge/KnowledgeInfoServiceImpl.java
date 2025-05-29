@@ -1,6 +1,9 @@
 package org.ruoyi.chat.service.knowledge;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -8,6 +11,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.ruoyi.chain.loader.ResourceLoader;
 import org.ruoyi.chain.loader.ResourceLoaderFactory;
+import org.ruoyi.common.core.domain.dto.RoleDTO;
 import org.ruoyi.common.core.domain.model.LoginUser;
 import org.ruoyi.common.core.utils.MapstructUtils;
 import org.ruoyi.common.core.utils.StringUtils;
@@ -22,6 +26,8 @@ import org.ruoyi.domain.bo.KnowledgeInfoUploadBo;
 import org.ruoyi.domain.bo.StoreEmbeddingBo;
 import org.ruoyi.domain.vo.ChatModelVo;
 import org.ruoyi.domain.vo.KnowledgeInfoVo;
+import org.ruoyi.enums.KidAuthTypeEnums;
+import org.ruoyi.enums.KidShareEnums;
 import org.ruoyi.mapper.KnowledgeAttachMapper;
 import org.ruoyi.mapper.KnowledgeFragmentMapper;
 import org.ruoyi.mapper.KnowledgeInfoMapper;
@@ -83,6 +89,60 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
     return TableDataInfo.build(result);
   }
 
+  @Override
+  public TableDataInfo<KnowledgeInfoVo> queryAuthList(KnowledgeInfoBo bo, PageQuery pageQuery)
+      throws Exception {
+    //拿出所有知识库
+    List<KnowledgeInfo> knowledgeInfos = baseMapper.selectList();
+    List<KnowledgeInfoVo> returnList = new ArrayList<>();
+    LoginUser loginUser = LoginHelper.getLoginUser();
+    for (KnowledgeInfo item : knowledgeInfos) {
+      KnowledgeInfoVo temp = new KnowledgeInfoVo();
+      KnowledgeInfo knowledgeInfo = this.checkAuth(item);
+      if (ObjectUtil.isEmpty(knowledgeInfo)) {
+        continue;
+      }
+      BeanUtil.copyProperties(temp,knowledgeInfo);
+      returnList.add(temp);
+    }
+    return TableDataInfo.build(returnList);
+  }
+
+  /**
+   * 校验 知识库权限
+   */
+  @Override
+  public KnowledgeInfo checkAuth(KnowledgeInfo knowledgeInfo) throws Exception {
+    if (ObjectUtil.isEmpty(knowledgeInfo)) {
+      throw new Exception("知识库对象 不能为空");
+    }
+    //创建人=登录用户
+    if (Objects.equals(LoginHelper.getLoginUser().getUserId(), knowledgeInfo.getCreateBy())) {
+      return knowledgeInfo;
+    }
+    //如果是公开的知识库
+    if (KidShareEnums.SHARE_1.getType().equals(knowledgeInfo.getShare())) {
+      return knowledgeInfo;
+    } else {
+      //不是公开的知识库
+      if (KidAuthTypeEnums.AUTH_TYPE_10.getCode().equals(knowledgeInfo.getAuthType())
+          && Objects.equals(LoginHelper.getLoginUser().getUserId(), knowledgeInfo.getCreateBy())
+      ) {
+        return knowledgeInfo;
+      } else if (KidAuthTypeEnums.AUTH_TYPE_20.getCode().equals(knowledgeInfo.getAuthType())) {
+        //角色可见
+        List<RoleDTO> roles = LoginHelper.getLoginUser().getRoles();
+        for (RoleDTO role : roles) {
+          //如果包含用户的角色
+          if (knowledgeInfo.getAuthRoles().contains(String.valueOf(role.getRoleId()))) {
+            return knowledgeInfo;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * 查询知识库列表
    */
@@ -101,7 +161,8 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
     lqw.eq(bo.getShare() != null, KnowledgeInfo::getShare, bo.getShare());
     lqw.eq(StringUtils.isNotBlank(bo.getDescription()), KnowledgeInfo::getDescription,
         bo.getDescription());
-    lqw.eq(StringUtils.isNotBlank(bo.getKnowledgeSeparator()), KnowledgeInfo::getKnowledgeSeparator,
+    lqw.eq(StringUtils.isNotBlank(bo.getKnowledgeSeparator()),
+        KnowledgeInfo::getKnowledgeSeparator,
         bo.getKnowledgeSeparator());
     lqw.eq(StringUtils.isNotBlank(bo.getQuestionSeparator()), KnowledgeInfo::getQuestionSeparator,
         bo.getQuestionSeparator());
@@ -176,12 +237,13 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public void removeKnowledge(String id) {
-    Map<String,Object> map = new HashMap<>();
+    Map<String, Object> map = new HashMap<>();
     KnowledgeInfo knowledgeInfo = baseMapper.selectById(id);
     check(knowledgeInfo);
-    map.put("kid",knowledgeInfo.getKid());
+    map.put("kid", knowledgeInfo.getKid());
     // 删除向量数据
-    vectorStoreService.removeById(String.valueOf(knowledgeInfo.getId()),knowledgeInfo.getVectorModelName());
+    vectorStoreService.removeById(String.valueOf(knowledgeInfo.getId()),
+        knowledgeInfo.getVectorModelName());
     // 删除附件和知识片段
     fragmentMapper.deleteByMap(map);
     attachMapper.deleteByMap(map);
@@ -202,9 +264,10 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
     String docId = RandomUtil.randomString(10);
     knowledgeAttach.setDocId(docId);
     knowledgeAttach.setDocName(fileName);
-    knowledgeAttach.setDocType(fileName.substring(fileName.lastIndexOf(".")+1));
+    knowledgeAttach.setDocType(fileName.substring(fileName.lastIndexOf(".") + 1));
     String content = "";
-    ResourceLoader resourceLoader = resourceLoaderFactory.getLoaderByFileType(knowledgeAttach.getDocType());
+    ResourceLoader resourceLoader = resourceLoaderFactory.getLoaderByFileType(
+        knowledgeAttach.getDocType());
     List<String> fids = new ArrayList<>();
     try {
       content = resourceLoader.getContent(file.getInputStream());
@@ -234,10 +297,11 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
 
     // 通过kid查询知识库信息
     KnowledgeInfoVo knowledgeInfoVo = baseMapper.selectVoOne(Wrappers.<KnowledgeInfo>lambdaQuery()
-            .eq(KnowledgeInfo::getId, kid));
+        .eq(KnowledgeInfo::getId, kid));
 
     // 通过向量模型查询模型信息
-    ChatModelVo chatModelVo = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModelName());
+    ChatModelVo chatModelVo = chatModelService.selectModelByName(
+        knowledgeInfoVo.getEmbeddingModelName());
 
     StoreEmbeddingBo storeEmbeddingBo = new StoreEmbeddingBo();
     storeEmbeddingBo.setKid(kid);
@@ -256,7 +320,7 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
    *
    * @param knowledgeInfo 知识库
    */
-  public void check( KnowledgeInfo knowledgeInfo) {
+  public void check(KnowledgeInfo knowledgeInfo) {
     LoginUser loginUser = LoginHelper.getLoginUser();
     if (!knowledgeInfo.getUid().equals(loginUser.getUserId())) {
       throw new SecurityException("权限不足");
