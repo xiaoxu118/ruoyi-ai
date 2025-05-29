@@ -102,7 +102,7 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
       if (ObjectUtil.isEmpty(knowledgeInfo)) {
         continue;
       }
-      BeanUtil.copyProperties(temp,knowledgeInfo);
+      BeanUtil.copyProperties(knowledgeInfo,temp);
       returnList.add(temp);
     }
     return TableDataInfo.build(returnList);
