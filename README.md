@@ -63,7 +63,7 @@
 | 项目介绍 | GitHub 仓库 | Gitee 仓库 |
 |:--------:|:----------:|:----------:|
 | 前端简化版 | [ruoyi-element-ai](https://github.com/element-plus-x/ruoyi-element-ai) | [ruoyi-element-ai](https://gitee.com/he-jiayue/ruoyi-element-ai) |
-| 智能编码助手 | [Spring AI Alibaba Copilot](https://github.com/springaialibaba/spring-ai-alibaba-copilot) | - |
+
 
 
 
@@ -99,6 +99,10 @@
 
 > 💡 **小贴士**：建议将 PR 提交到 GitHub，我们会自动同步到其他代码托管平台
 
+<a href="https://openomy.com/ageerle/ruoyi-ai" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.com/svg?repo=ageerle/ruoyi-ai&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
+</a>
+
 ## 📄 开源协议
 
 本项目采用 **MIT 开源协议**，详情请查看 [LICENSE](LICENSE) 文件。
@@ -107,7 +111,7 @@
 
 感谢以下优秀的开源项目为本项目提供支持：
 
-- [Spring AI Alibaba Copilot](https://github.com/springaialibaba/spring-ai-alibaba-copilot) - 基于Spring AI的智能编码助手，集成MCP工具协议，支持项目分析和代码生成
+- [Spring AI Alibaba Copilot](https://github.com/springaialibaba/spring-ai-alibaba-copilot) - 基于spring-ai-alibaba 的智能编码助手
 - [Spring AI](https://spring.io/projects/spring-ai) - Spring 官方 AI 集成框架
 - [Langchain4j](https://github.com/langchain4j/langchain4j) - 强大的 Java LLM 开发框架
 - [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) - 成熟的企业级快速开发框架
@@ -117,6 +121,8 @@
 ## 🌐 生态伙伴
 
 - [PPIO 派欧云](https://ppinfra.com/user/register?invited_by=P8QTUY&utm_source=github_ruoyi-ai) - 提供高性价比的 GPU 算力和模型 API 服务
+- [优云智算](https://www.compshare.cn/?ytag=GPU_YY-gh_ruoyi) - 万卡RTX40系GPU+海内外主流模型API服务，秒级响应，按量计费，新客免费用。
+- [胜算云](https://www.shengsuanyun.com/?from=CH_3WG71ZOS) - AI模型算力聚合超市云服务。
 
 ## 💬 社区交流
 

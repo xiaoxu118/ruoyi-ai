@@ -9,6 +9,7 @@ import org.ruoyi.core.domain.BaseEntity;
 
 import java.io.Serial;
 
+
 /**
  * 聊天模型对象 chat_model
  *
@@ -74,6 +75,11 @@ public class ChatModel extends BaseEntity {
      * 密钥
      */
     private String apiKey;
+
+    /**
+     * 优先级
+     */
+    private Integer priority;
 
     /**
      * 备注

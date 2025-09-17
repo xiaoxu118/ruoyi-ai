@@ -21,6 +21,8 @@ import org.ruoyi.common.core.utils.SpringUtils;
 import org.ruoyi.common.core.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.ruoyi.chat.util.SSEUtil;
+import org.ruoyi.chat.support.RetryNotifier;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Objects;
@@ -44,12 +46,15 @@ public class SSEEventSourceListener extends EventSourceListener {
 
     private String token;
 
+    private boolean retryEnabled;
+
     @Autowired(required = false)
-    public SSEEventSourceListener(SseEmitter emitter,Long userId,Long sessionId, String token) {
+    public SSEEventSourceListener(SseEmitter emitter,Long userId,Long sessionId, String token, boolean retryEnabled) {
         this.emitter = emitter;
         this.userId = userId;
         this.sessionId = sessionId;
         this.token = token;
+        this.retryEnabled = retryEnabled;
     }
 
 
@@ -77,6 +82,10 @@ public class SSEEventSourceListener extends EventSourceListener {
             if ("[DONE]".equals(data)) {
                 //成功响应
                 emitter.complete();
+                // 清理失败回调（以 emitter 为键）
+                RetryNotifier.clear(emitter);
+                // 🔥 注释：AI回复的保存和计费已由BillingChatServiceProxy统一处理，此处代码已废弃
+                /*
                 // 扣除费用
                 ChatRequest chatRequest = new ChatRequest();
                 // 设置对话角色
@@ -87,7 +96,10 @@ public class SSEEventSourceListener extends EventSourceListener {
                 chatRequest.setPrompt(stringBuffer.toString());
                 // 记录会话token
                 BaseContext.setCurrentToken(token);
-                chatCostService.deductToken(chatRequest);
+                // 先保存助手消息，再发布异步计费事件
+                chatCostService.saveMessage(chatRequest);
+                chatCostService.publishBillingEvent(chatRequest);
+                */
                 return;
             }
 
@@ -113,19 +125,38 @@ public class SSEEventSourceListener extends EventSourceListener {
     @Override
     public void onClosed(EventSource eventSource) {
         log.info("OpenAI关闭sse连接...");
+        // 清理失败回调
+        RetryNotifier.clear(emitter);
     }
 
     @SneakyThrows
     @Override
     public void onFailure(EventSource eventSource, Throwable t, Response response) {
         if (Objects.isNull(response)) {
+            // 透传错误到前端
+            SSEUtil.sendErrorEvent(emitter, t != null ? t.getMessage() : "SSE连接失败");
+            if (retryEnabled) {
+                // 通知重试（以 emitter 为键）
+                RetryNotifier.notifyFailure(emitter);
+            } else {
+                emitter.complete();
+            }
             return;
         }
         ResponseBody body = response.body();
         if (Objects.nonNull(body)) {
-            log.error("OpenAI  sse连接异常data：{}，异常：{}", body.string(), t);
+            String msg = body.string();
+            log.error("OpenAI  sse连接异常data：{}，异常：{}", msg, t);
+            SSEUtil.sendErrorEvent(emitter, msg);
         } else {
             log.error("OpenAI  sse连接异常data：{}，异常：{}", response, t);
+            SSEUtil.sendErrorEvent(emitter, String.valueOf(response));
+        }
+        if (retryEnabled) {
+            // 通知重试
+            RetryNotifier.notifyFailure(emitter);
+        } else {
+            emitter.complete();
         }
         eventSource.cancel();
     }

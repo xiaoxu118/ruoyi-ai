@@ -61,4 +61,30 @@ public class ChatRequest {
      */
     private String role;
 
+
+    /**
+     * 对话id(每个聊天窗口都不一样)
+     */
+    private Long uuid;
+
+    /**
+     * 是否有附件
+     */
+    private Boolean hasAttachment;
+
+    /**
+     * 是否自动切换模型
+     */
+    private Boolean autoSelectModel;
+
+    /**
+     * 会话令牌（为避免在非Web线程中获取Request，入口处注入）
+     */
+    private String token;
+
+    /**
+     * 消息ID（保存消息成功后设置，用于后续扣费更新）
+     */
+    private Long messageId;
+
 }

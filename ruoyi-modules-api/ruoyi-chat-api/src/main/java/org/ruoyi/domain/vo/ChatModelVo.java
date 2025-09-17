@@ -14,7 +14,6 @@ import java.io.Serializable;
 
 
 
-
 /**
  * 聊天模型视图对象 chat_model
  *
@@ -91,9 +90,16 @@ public class ChatModelVo implements Serializable {
     private String apiKey;
 
     /**
+     * 优先级(值越大优先级越高)
+     */
+    @ExcelProperty(value = "优先级")
+    private Integer priority;
+
+    /**
      * 备注
      */
     @ExcelProperty(value = "备注")
     private String remark;
+
 
 }

@@ -1,16 +1,13 @@
-
 # 项目相关配置
 ruoyi:
   # 名称
-  name: "ruoyi"
+  name: "ruoyi-ai"
   # 版本
   version: ${revision}
   # 版权年份
   copyrightYear: 2025
   # 实例演示开关
-  demoEnabled: true
-  # 获取ip地址开关
-  addressEnabled: false
+  demoEnabled: false
 
 captcha:
   enable: false
@@ -133,6 +130,9 @@ security:
     - /chat/send
     # 文件上传
     - /chat/upload
+    # 代码生成调用
+    - /tool/gen/getByTableName
+    - /tool/gen/batchGenCode
     # 静态资源
     - /*.html
     - /**/*.html
@@ -161,6 +161,9 @@ tenant:
     - sys_user_post
     - sys_user_role
 
+knowledge-role:
+  enable: false
+
 # MyBatisPlus配置
 # https://baomidou.com/config/
 mybatis-plus:
@@ -185,7 +188,7 @@ mybatis-plus:
     # 更详细的日志输出 会有性能损耗 org.apache.ibatis.logging.stdout.StdOutImpl
     # 关闭日志记录 (可单纯使用 p6spy 分析) org.apache.ibatis.logging.nologging.NoLoggingImpl
     # 默认日志输出 org.apache.ibatis.logging.slf4j.Slf4jImpl
-    logImpl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    logImpl: org.apache.ibatis.logging.slf4j.Slf4jImpl
   global-config:
     # 是否打印 Logo banner
     banner: true
